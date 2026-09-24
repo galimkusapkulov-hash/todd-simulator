@@ -9,7 +9,6 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 
 from google import genai
-from google.genai import types as genai_types
 
 # Загружаем переменные окружения
 load_dotenv()
@@ -20,11 +19,13 @@ GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 # Настройка логов
 logging.basicConfig(level=logging.INFO)
 
-# Инициализация Gemini
+# Инициализация Gemini API клиента
 gemini_client = genai.Client(api_key=GEMINI_KEY)
 
-# Хранилище сессий чата для сохранения контекста переписки
-# Структура: {chat_id: chat_session}
+# Актуальная модель
+MODEL_NAME = "gemini-3.6-flash"
+
+# Хранилище сессий чата для сохранения контекста переписки {chat_id: chat_session}
 user_chats = {}
 
 # Инициализация Telegram бота
@@ -37,13 +38,13 @@ dp = Dispatcher()
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    """Приветствие и сброс контекста при старте."""
+    """Приветствие и инициализация чата."""
     chat_id = message.chat.id
-    # Создаём новую сессию чата Gemini для пользователя
-    user_chats[chat_id] = gemini_client.chats.create(model="gemini-2.5-flash")
+    # Создаём новую сессию чата с Gemini 3.6
+    user_chats[chat_id] = gemini_client.chats.create(model=MODEL_NAME)
     
     await message.answer(
-        "Привет! Я твой личный Gemini-клиент.\n\n"
+        "Привет! Я твой личный Gemini-клиент (работает на Gemini 3.6 Flash).\n\n"
         "Просто напиши мне сообщение, и я отвечу. "
         "Чтобы сбросить контекст диалога и начать заново, используй /reset."
     )
@@ -53,7 +54,7 @@ async def cmd_start(message: types.Message):
 async def cmd_reset(message: types.Message):
     """Сброс истории диалога."""
     chat_id = message.chat.id
-    user_chats[chat_id] = gemini_client.chats.create(model="gemini-2.5-flash")
+    user_chats[chat_id] = gemini_client.chats.create(model=MODEL_NAME)
     await message.answer("История диалога очищена! Начинаем с чистого листа.")
 
 
@@ -64,7 +65,7 @@ async def handle_message(message: types.Message):
 
     # Если сессия ещё не создана, создаём
     if chat_id not in user_chats:
-        user_chats[chat_id] = gemini_client.chats.create(model="gemini-2.5-flash")
+        user_chats[chat_id] = gemini_client.chats.create(model=MODEL_NAME)
 
     # Показываем статус «печатает...» в Telegram
     await bot.send_chat_action(chat_id=chat_id, action="typing")
