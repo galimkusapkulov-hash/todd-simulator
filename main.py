@@ -14,8 +14,8 @@ from google.genai import types as genai_types
 # Загружаем переменные окружения
 load_dotenv()
 
-TG_TOKEN = os.getenv("8415425477:AAEo6qnbFQfGMF_A7ugA0Ozz7eXdUTN6k98")
-GEMINI_KEY = os.getenv("AIzaSyDLvc0wOvKhjtWcJRSEPnHksXtjSuR2IwI")
+TG_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 
 # Настройка логов
 logging.basicConfig(level=logging.INFO)
