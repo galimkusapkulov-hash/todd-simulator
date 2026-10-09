@@ -26,24 +26,38 @@
 ```bash
 $ sudo docker compose up
 $ sudo docker exec ollama ollama pull gemma2:9b
+
+npm install openai
 ```
 
 ## Разработка
 В папке ```src/_``` находятся все модули. Модуль должен наследоваться от ```module.js``` — он содержит потенциальные обработчики событий для прикрепления к экземпляру Telegraf.
 
 Пример кода для запроса к Ollama (запрос на английском языке, как правило, обрабатывается в 2 раза точнее и быстрее)
-```js
-const response = await fetch("http://ollama:11434/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: 
-        JSON.stringify({
-            model: "gemma2:9b", // Одна модель на все модули
-            prompt: "Count from 1 to 10, answer as a JSON Array, don't write anything extra.",
-            stream: false,
-        }),
-    signal: AbortSignal.timeout(60000) // В случае долгого запроса - остановка
+```import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: process.env.OPENROUTER_API_KEY, // ключ sk-or-v1-...
 });
+
+async function askAI(userMessage) {
+  const completion = await openai.chat.completions.create({
+    model: 'openrouter/free', // использует любую доступную бесплатную модель
+    messages: [
+      {
+        role: 'system',
+        content: 'Ты — лис. Отвечай коротко, дружелюбно и мило, используй :р',
+      },
+      {
+        role: 'user',
+        content: userMessage,
+      },
+    ],
+  });
+
+  return completion.choices[0].message.content;
+}
 ```
 При замене модели на [новую](https://ollama.com/search) рекомендую заменить её во всех модулях с Ollama: ```ai-trainer.js```, ```ai-talker.js```, а также Dockerfile.ollama
 
